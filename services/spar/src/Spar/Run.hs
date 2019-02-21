@@ -33,6 +33,8 @@ import Util.Options (casEndpoint, casKeyspace, epHost, epPort)
 
 import qualified Cassandra.Schema as Cas
 import qualified Cassandra.Settings as Cas
+import qualified Data.ByteString.Lazy.Builder as B
+import qualified Data.ByteString.Lazy.Char8 as LBS
 import qualified Data.Metrics.Types as Metrics
 import qualified Network.Wai as Wai
 import qualified Network.Wai.Handler.Warp as Warp
@@ -74,7 +76,26 @@ mkLogger opts = Log.new $ Log.defSettings
   & Log.setLogLevel (toLevel $ saml opts ^. SAML.cfgLogLevel)
   & Log.setOutput Log.StdOut
   & Log.setFormat Nothing
-  & Log.setNetStrings (logNetStrings opts)
+  & Log.setRenderer (removeNewline rndrRaw)
+  where
+    rndrRaw :: Log.Renderer
+    rndrRaw = if logNetStrings opts
+      then Log.renderNetstr
+      else Log.renderDefault
+
+-- | Many logging processors handle newlines poorly.  Instead of showing discipline and not
+-- injecting any newlines into your log messages and making sure nobody else does, you can
+-- choose to call `noNewlines` on your renderer that replaces all consecutive whitespace in
+-- the output by a single ' '.
+noNewlines :: Renderer -> Renderer
+noNewlines rndrRaw = B.lazyByteString . nl2sp . B.toLazyByteString $
+  rndrRaw del df lvl elems
+  where
+    nl2sp :: LBS -> LBS
+    nl2sp = LBS.concatMap $
+      \c -> if isSpace c
+            then " "
+            else LBS.singleton c
 
 
 ----------------------------------------------------------------------
