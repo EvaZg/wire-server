@@ -41,6 +41,8 @@ extra-deps:
   commit: 04e0bef9e87853567b8e063f1dcf91e0dd097593    # master (Feb 13, 2019)
 - git: https://github.com/wireapp/hscim
   commit: 53db8029e17e7085322e7055f71efb5e7058d4a5    # master (Jan 23, 2019)
+- git: https://gitlab.com/fisx/tinylog
+  commit: 9bffbfe3a016f054c8dfa000a28a6df2092188e9
 
 flags:
   types-common:
